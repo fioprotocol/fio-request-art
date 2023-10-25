@@ -8,5 +8,6 @@ module.exports = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/app/$1',
     },
-    testTimeout: 30000
+    testTimeout: 30000,
+    verbose: true
 }

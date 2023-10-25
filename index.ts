@@ -1,8 +1,8 @@
-import { getPendingFioRequests } from './fioProtocol';
-import { rejectFioRequest } from './fioProtocol';
-import { getFioSdkInstance } from './fioProtocol';
-import { generateImage } from './generateImage';
-import { mintNFT } from './mintNFT';
+import { getPendingFioRequests } from './app/fioProtocol';
+import { rejectFioRequest } from './app/fioProtocol';
+import { getFioSdkInstance } from './app/fioProtocol';
+import { generateImage } from './app/generateImage';
+import { mintNFT } from './app/mintNFT';
 
 export const handler = async () => {
     try {
@@ -10,17 +10,20 @@ export const handler = async () => {
         const fioRequests = await getPendingFioRequests(fioSDK);
 
         for (const request of fioRequests) {
-            // Generate image
-            const imageURL = await generateImage(request.memo);
-            // Mint NFT
-            const mintResponse = await mintNFT(request, imageURL);
+            // Check for valid evm address
+            if (/^0x[a-fA-F0-9]{40}$/.test(request.payee_public_address)) {
+                // Generate image
+                const imageURL = await generateImage(request.memo);
+                // Mint NFT
+                const mintResponse = await mintNFT(request, imageURL);
+                console.log(`NFT minted for ${request.payee_fio_address}:`, mintResponse);
+            } else console.log(`Invalid evm address`)
             // Reject the fioRequest
             await rejectFioRequest(fioSDK, request.fio_request_id, 1000000000000, '');
-            console.log(`NFT minted for ${request.payee_fio_address}:`, mintResponse);
         }
-
     } catch (error) {
         console.error('Error in lambdaHandler:', error);
+        throw error;
     }
 };
 

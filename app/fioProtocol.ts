@@ -15,19 +15,18 @@ export interface ProcessedFioRequest {
     fio_request_id: number;
     payee_fio_address: string;
     payee_public_address: string;
-    chain_code: string;
     memo: string;
 }
 
 export const getPendingFioRequests = async (fioSdk: InstanceType<typeof FIOSDK>): Promise<ProcessedFioRequest[]> => {
-        const result = await fioSdk.genericAction('getPendingFioRequests', {limit: 100, offset: 0});
+        const result = await fioSdk.genericAction('getPendingFioRequests', {limit: config.FIO_REQ_LIMIT, offset: 0})
+        if (result.status === 404) return [];
         const requests = result.requests;
         return requests.map((request: any) => ({
             fio_request_id: request.fio_request_id,
             payee_fio_address: request.payee_fio_address,
-            payee_public_address: request.payee_token_public_address,
-            chain_code: request.chain_code,
-            memo: request.memo
+            payee_public_address: request.content.payee_public_address,
+            memo: request.content.memo
         }));
 };
 
@@ -42,7 +41,7 @@ export const rejectFioRequest = async (
         maxFee,
         technologyProviderId
     });
-    if (!result || !result.status || result.status !== 'OK') {
+    if (!result || !result.status || result.status !== 'request_rejected') {
         console.error(`Failed to reject FIO request with ID: ${fioRequestId}. Unexpected result:`, result);
         throw new Error('Failed to reject FIO request due to unexpected result.');
     }

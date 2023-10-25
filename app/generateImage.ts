@@ -10,7 +10,7 @@ export const generateImage = async (textPrompt: string): Promise<string> => {
         const requestBody = {
             prompt: textPrompt,
             n: 1, // Number of images to generate
-            size: "256x256", // Image size
+            size: "512x512", // Image size
         };
 
         const response = await axios.post(config.DALLE_API_URL, requestBody, { headers: headers });

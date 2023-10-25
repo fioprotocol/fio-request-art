@@ -1,12 +1,11 @@
 import mintNFT from '../app/mintNFT';
 import { ProcessedFioRequest } from '@/fioProtocol';
 
-describe('mintNFT integration tests', () => {
+describe('mintNFT integration test', () => {
     const sampleFioRequestData: ProcessedFioRequest = {
         fio_request_id: 1,
         payee_fio_address: "pawel@edge",
-        payee_public_address: "0x643D84da917543128F4832723f36E2Ed21198Cd3",
-        chain_code: "MATIC",
+        payee_public_address: "0xB28D93ea0cE0fC2016b4B9548f0951877c22D082",
         memo: "Nice art!"
     };
 
@@ -16,6 +15,6 @@ describe('mintNFT integration tests', () => {
         const result = await mintNFT(sampleFioRequestData, sampleImageURL);
 
         // Validate that the result is as expected
-        expect(result).toBeTruthy();  // or any other assertions based on the expected outcome
+        expect(result).toBeTruthy();
     });
 });
