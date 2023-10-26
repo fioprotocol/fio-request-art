@@ -19,8 +19,8 @@ export interface ProcessedFioRequest {
 }
 
 export const getPendingFioRequests = async (fioSdk: InstanceType<typeof FIOSDK>): Promise<ProcessedFioRequest[]> => {
+    try {
         const result = await fioSdk.genericAction('getPendingFioRequests', {limit: config.FIO_REQ_LIMIT, offset: 0})
-        if (result.status === 404) return [];
         const requests = result.requests;
         return requests.map((request: any) => ({
             fio_request_id: request.fio_request_id,
@@ -28,6 +28,13 @@ export const getPendingFioRequests = async (fioSdk: InstanceType<typeof FIOSDK>)
             payee_public_address: request.content.payee_public_address,
             memo: request.content.memo
         }));
+    } catch (error) {
+        if (error instanceof Error && error.message.includes("Error 404")) {
+            console.log("No pending FIO requests found.");
+            return [];
+        }
+        throw error;  // If it's not a 404 error, re-throw
+    }
 };
 
 export const rejectFioRequest = async (
