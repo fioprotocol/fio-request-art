@@ -8,9 +8,10 @@ export const generateImage = async (textPrompt: string): Promise<string> => {
         };
 
         const requestBody = {
+            model: "dall-e-3",
             prompt: textPrompt,
             n: 1, // Number of images to generate
-            size: "512x512", // Image size
+            size: "1024x1024", // Image size
         };
 
         const response = await axios.post(config.DALLE_API_URL, requestBody, { headers: headers });
