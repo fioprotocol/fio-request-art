@@ -11,13 +11,15 @@ export const handler = async () => {
 
         for (const request of fioRequests) {
             // Check for valid evm address
-            if (/^0x[a-fA-F0-9]{40}$/.test(request.payee_public_address)) {
+            if (/^0x[a-fA-F0-9]{40}$/.test(request.payee_public_address) && request.memo && request.memo.length >= 3) {
                 // Generate image
                 const imageURL = await generateImage(request.memo);
                 // Mint NFT
-                const mintResponse = await mintNFT(request, imageURL);
-                console.log(`NFT minted for ${request.payee_fio_address}:`, mintResponse);
-            } else console.log(`Invalid evm address`)
+                if (imageURL) {
+                    const mintResponse = await mintNFT(request, imageURL);
+                    console.log(`NFT minted for ${request.payee_fio_address}:`, mintResponse);
+                }
+            } else console.log(`Invalid evm address or memo`)
             // Reject the fioRequest
             await rejectFioRequest(fioSDK, request.fio_request_id, 1000000000000, '');
         }

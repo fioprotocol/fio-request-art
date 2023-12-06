@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from './config';
 
-export const generateImage = async (textPrompt: string): Promise<string> => {
+export const generateImage = async (textPrompt: string): Promise<string | null> => {
         const headers = {
             'Authorization': `Bearer ${config.OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
@@ -14,14 +14,27 @@ export const generateImage = async (textPrompt: string): Promise<string> => {
             size: "1024x1024", // Image size
         };
 
-        const response = await axios.post(config.DALLE_API_URL, requestBody, { headers: headers });
+        try {
+            const response = await axios.post(config.DALLE_API_URL, requestBody, { headers: headers });
 
-        if (!response.data || !isValidUrl(response.data.data[0].url)) {
-            console.error('Failed to generate image from DALL·E');
-            throw new Error('Failed to generate image from DALL·E');
+            // Check if the response has valid data and URL
+            if (!response.data || !response.data.data || !response.data.data[0].url || !isValidUrl(response.data.data[0].url)) {
+                throw new Error('Invalid response data or URL from DALL·E');
+            }
+
+            return response.data.data[0].url;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                // Check for content policy violation error
+                if (error.response && error.response.data && error.response.data.error && error.response.data.error.code === 'content_policy_violation') {
+                    console.log('Prompt rejected by dall-e');
+                    return null; // Specific handling for this error
+                }
+            }
+
+            // Rethrow the error for other types of errors
+            throw error;
         }
-
-        return response.data.data[0].url;
 };
 export function isValidUrl(str: string): boolean {
     try {
