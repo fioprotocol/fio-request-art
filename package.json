@@ -1,5 +1,5 @@
 {
-  "name": "fio-nft-app",
+  "name": "@fioprotocol/fio-nft-app",
   "version": "1.0.0",
   "description": "AWS Lambda function to retrieve FIO requests, generate images using DALL-E, and mint them as NFTs on Polygon",
   "main": "lambda-handler.ts",
