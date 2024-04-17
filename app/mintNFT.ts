@@ -1,38 +1,53 @@
 import axios from 'axios';
-import { ProcessedFioRequest } from './fioProtocol';
 import config from './config';
 
-export const mintNFT = async (fioRequestData: ProcessedFioRequest, imageURL: string) => {
+interface MintNFTParams {
+    contract_chain: string;
+    contract_address: string;
+    ipfs_upload: boolean;
+    meta_data_name: string;
+    meta_data_description: string;
+    meta_data_external_url: string;
+    owner_public_address: string;
+    image_url?: string;
+}
 
-    // Fetch the image content
-    const imageResponse = await axios.get(imageURL, { responseType: 'stream' });
-    const FormData = require('form-data');
-    const formData: any = new FormData();
-    formData.append('file', imageResponse.data);
+export const mintNFT = async (params: MintNFTParams) => {
+    let fileUrl = params.image_url || '';
 
-    // 1. Upload the file to IPFS
-    const uploadImageResponse = await axios.post(
-        `${config.NFTPORT_API_URL}/files`,
-        formData,
-        {
-            headers: {
-                ...formData.getHeaders(),
-                'Authorization': config.NFTPORT_API_KEY
+    if (params.ipfs_upload && params.image_url) {
+        // Fetch the image content
+        const imageResponse = await axios.get(params.image_url, { responseType: 'stream' });
+        const FormData = require('form-data');
+        const formData: any = new FormData();
+        formData.append('file', imageResponse.data);
+
+        // 1. Upload the file to IPFS
+        const uploadImageResponse = await axios.post(
+            `${config.NFTPORT_API_URL}/files`,
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders(),
+                    'Authorization': config.NFTPORT_API_KEY
+                }
             }
-        }
-    );
+        );
 
-    if (!uploadImageResponse.data || !uploadImageResponse.data.ipfs_url) {
-        console.error('Failed to upload image to IPFS');
-        throw new Error('Failed to upload image to IPFS');
+        if (!uploadImageResponse.data || !uploadImageResponse.data.ipfs_url) {
+            console.error('Failed to upload image to IPFS');
+            throw new Error('Failed to upload image to IPFS');
+        }
+
+        fileUrl = uploadImageResponse.data.ipfs_url;
     }
 
     // 2. Upload metadata to IPFS
     const metadata = {
-        name: `FIO Request Art by ${fioRequestData.payee_fio_address}`,
-        description: fioRequestData.memo,
-        file_url: uploadImageResponse.data.ipfs_url,
-        external_url: "https://fio.net/"
+        name: params.meta_data_name,
+        description: params.meta_data_description,
+        file_url: fileUrl,
+        external_url: params.meta_data_external_url
     };
 
     const uploadMetadataResponse = await axios.post(
@@ -48,11 +63,11 @@ export const mintNFT = async (fioRequestData: ProcessedFioRequest, imageURL: str
 
     // 3. Mint the NFT using batch customizable minting
     const mintData = {
-        chain: "polygon",
-        contract_address: config.NFTPORT_CONTRACT_ADDRESS,
+        chain: params.contract_chain,
+        contract_address: params.contract_address,
         tokens: [
             {
-                mint_to_address: fioRequestData.payee_public_address,
+                mint_to_address: params.owner_public_address,
                 token_id: Math.floor(Math.random() * 1_000_000_000).toString(), // random 9-digit number
                 metadata_uri: uploadMetadataResponse.data.metadata_uri,
                 quantity: 1

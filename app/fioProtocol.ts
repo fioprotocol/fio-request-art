@@ -13,6 +13,7 @@ export function getFioSdkInstance() {
 
 export interface ProcessedFioRequest {
     fio_request_id: number;
+    payer_fio_address: string;
     payee_fio_address: string;
     payee_public_address: string;
     memo: string;
@@ -24,6 +25,7 @@ export const getPendingFioRequests = async (fioSdk: InstanceType<typeof FIOSDK>)
         const requests = result.requests;
         return requests.map((request: any) => ({
             fio_request_id: request.fio_request_id,
+            payer_fio_address: request.payer_fio_address,
             payee_fio_address: request.payee_fio_address,
             payee_public_address: request.content.payee_public_address,
             memo: request.content.memo
