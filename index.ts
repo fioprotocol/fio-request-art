@@ -3,6 +3,7 @@ import { rejectFioRequest } from './app/fioProtocol';
 import { getFioSdkInstance } from './app/fioProtocol';
 import { generateImage } from './app/generateImage';
 import { mintNFT } from './app/mintNFT';
+import config from './app/config';
 
 export const handler = async () => {
     try {
@@ -18,8 +19,7 @@ export const handler = async () => {
                     // Mint NFT with IPFS storage
                     if (imageURL) {
                         const mintResponse = await mintNFT({
-                            contract_chain: 'polygon',
-                            contract_address: '0x7bfc7492b32e40d7dd9b0a241b5d0ba9ccf1632b',
+                            contract_address: config.ART_CONTRACT_ADDRESS,
                             ipfs_upload: true,
                             meta_data_name: `FIO Request Art by ${request.payee_fio_address}`,
                             meta_data_description: request.memo,
@@ -27,13 +27,12 @@ export const handler = async () => {
                             owner_public_address: request.payee_public_address,
                             image_url: imageURL
                         });
-                        console.log(`Request from ${request.payee_fio_address} processed.`);
+                        console.log(`NFT Art request from ${request.payee_fio_address} processed.`);
                     }
                 } else if (request.payer_fio_address === 'handle@fio') {
                     // Mint NFT without IPFS storage
                     const mintResponse = await mintNFT({
-                        contract_chain: 'polygon',
-                        contract_address: '0xab8d7a7f6bbcb9b4fa5ea7f3968998a2049ea4e3',
+                        contract_address: config.HANDLE_CONTRACT_ADDRESS,
                         ipfs_upload: false,
                         meta_data_name: `${request.payee_fio_address}`,
                         meta_data_description: `FIO Handle: ${request.payee_fio_address}`,
@@ -41,10 +40,10 @@ export const handler = async () => {
                         owner_public_address: request.payee_public_address,
                         image_url: `https://metadata.fioprotocol.io/nftimage/${request.payee_fio_address}.svg`
                     });
-                    console.log(`Request from ${request.payee_fio_address} processed.`);
+                    console.log(`FIO Handle request from ${request.payee_fio_address} processed.`);
                 }
             } else {
-                console.log(`Invalid evm address`);
+                console.log(`Invalid evm address: ${request.payee_public_address}`);
             }
             // Reject the fioRequest
             await rejectFioRequest(fioSDK, request.fio_request_id, 1000000000000, '');
