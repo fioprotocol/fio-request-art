@@ -6,3 +6,8 @@ This app looks for new FIO Requests and if it finds one, it will:
 * For handle@fio
   * Mint an NFT with https://metadata.fioprotocol.io/nftimage/${request.payee_fio_address}.svg using Netport
 * Cancel the FIO Request
+
+## Build Lambda zip
+```
+.\prepare-lambda.ps1
+```

@@ -25,9 +25,16 @@ export const handler = async () => {
                             meta_data_description: request.memo,
                             meta_data_external_url: "https://fio.net/",
                             owner_public_address: request.payee_public_address,
-                            image_url: imageURL
+                            image_url: imageURL,
+                            unique: false,
+                            payer_fio_address: request.payer_fio_address,
+                            fio_handle: request.payee_fio_address,
                         });
-                        console.log(`NFT Art request from ${request.payee_fio_address} processed.`);
+                        if (mintResponse) {
+                            console.log(`NFT Art request from ${request.payee_fio_address} processed.`);
+                        } else {
+                            console.log(`Failed to mint NFT Art for ${request.payee_fio_address}.`);
+                        }
                     }
                 } else if (request.payer_fio_address === 'handle@fio') {
                     // Mint NFT without IPFS storage
@@ -38,9 +45,16 @@ export const handler = async () => {
                         meta_data_description: `FIO Handle: ${request.payee_fio_address}`,
                         meta_data_external_url: `https://fio.id/${request.payee_fio_address}`,
                         owner_public_address: request.payee_public_address,
-                        image_url: `https://metadata.fioprotocol.io/nftimage/${request.payee_fio_address}.svg`
+                        image_url: `https://metadata.fioprotocol.io/nftimage/${request.payee_fio_address}.svg`,
+                        unique: true,
+                        payer_fio_address: request.payer_fio_address,
+                        fio_handle: request.payee_fio_address,
                     });
-                    console.log(`FIO Handle request from ${request.payee_fio_address} processed.`);
+                    if (mintResponse) {
+                        console.log(`FIO Handle NFT for ${request.payee_fio_address} minted.`);
+                    } else {
+                        console.log(`FIO Handle NFT for ${request.payee_fio_address} already exists or failed to mint.`);
+                    }
                 }
             } else {
                 console.log(`Invalid evm address: ${request.payee_public_address}`);
